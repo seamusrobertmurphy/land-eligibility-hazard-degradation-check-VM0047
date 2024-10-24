@@ -1,19 +1,23 @@
-# "[VM0047](https://verra.org/wp-content/uploads/2023/09/VM0047_ARR_v1.0-1.pdf): Eligibility, Hazards & Land Degradation Assessment"
-### author: "Murphy, S."
-### date: "2024-10-17"
+---
+title: "[VM0047](https://verra.org/wp-content/uploads/2023/09/VM0047_ARR_v1.0-1.pdf): Eligibility, Hazards & Land Degradation Assessment"
+author: "Murphy, S."
+date: "2024-10-17"
+output: 
+  html_document:
+    keep_md: TRUE
+    toc: TRUE
+    toc_float: TRUE
+---
+
 
 
 # Objective
 
-VM0047 is Verra's latest methodology for Afforestation, Reforestation, and Revegetation (ARR) projects to produce carbon credits, which incorporates dynamic performance benchmarks and remote sensing data to evaluate additionality and enhance carbon sequestration. The methodology incorporates dynamic performance benchmarks to assess project additionality whether the carbon sequestration activity would not have happened without the project's implementation. VM0047 emphasizes the use of remote sensing technologies, such as satellite imagery and geospatial data, to monitor project activities and verify carbon sequestration.
+VM0047 is Verra's latest methodology for Afforestation, Reforestation, and Revegetation (ARR) projects. The methodology incorporates dynamic performance benchmarks to assess project additionality, emphasizing the use of remote sensing technologies, such as satellite imagery and geospatial data, to monitor project activities, changes in land use and verify carbon sequestration.
 
-Under VM0047, two approaches are available for project implementation. Under the **census-based approach,** project activity must "occur within an area classified as non-forest for the past ten years with less than 10% percent pre-existing woody biomass cover,and/or occur in an area subject to continuous cropping, in ‘settlements”, or “other lands’” (p. 9). The area-based approach has a straightforward applicability checklist, which requires only a 10-year historical land cover assessment for baseline calculations, not required for the initial applicability conditions.
+Under VM0047's **census-based approach,** project activity must "occur within an area classified as non-forest for the past ten years with less than 10% percent pre-existing woody biomass cover,and/or occur in an area subject to continuous cropping, in ‘settlements”, or “other lands’” (p. 9). The area-based approach has a straightforward applicability checklist, which requires only a 10-year historical land cover assessment for baseline calculations, not required for the initial applicability conditions.
 
-The following key objectives are informed to assess area eligibility and historical risks of a project site in the Binukid province of southern Philippines.
-
--   Assess land eligibility against VM0047 requirements,
--   Highlight additional GIS factors when analysing project sites
--   Assess historical prevalence of natural hazards and their future likelihood.
+The following workflow assesses area eligibility and historical deforestation risks of a project site in the Binukid province of southern Philippines.\
 
 # Project AOI
 
@@ -27,7 +31,7 @@ tm_shape(aoi) +
   tm_basemap("Esri.WorldImagery")
 ```
 
-preserveafc6be74c04261ca
+preserveadc6cf61b2a18336
 
 # Sentinel time series, 2014-2024
 
@@ -139,7 +143,7 @@ tm_shape(ndvi_thresholds) +
 tmap::tmap_arrange(map1, map2, ncol=2)
 ```
 
-preserve93dddd22d7f09ea4
+preserve549ea4e3b80d439c
 
 ``` r
 writeRaster(ndvi_thresholds, "./cubes/2024_mosaic/NDVI_thresholds.tif", overwrite=T)
@@ -170,7 +174,7 @@ kmeans <- setValues(ndvi, nr)
 writeRaster(kmeans, "./cubes/2024_mosaic/NDVI_kmeans.tif", overwrite=T)
 ```
 
-preservecf954af16625c758
+preserve91d7e51e38aaffff
 
 # Global land cover datasets
 
@@ -212,11 +216,13 @@ tm_shape(ndvi_thresholds) +
 tmap::tmap_arrange(map1, map2, ncol = 2)
 ```
 
-preserve6ade5252dbebf7f3
+preservee49f9ad1de8af612
 
 # Land degradation
 
-SDG 15.3.1 is defined as proportion of land degraded over total land area. In order to assess the area degraded, SDG Indicator 15.3.1 uses information from 3 sub-indicators:
+Detecting and monitoring degraded land is essential to VM0047 project activity and reporting. This is required to demonstrate that projects provide additional carbon sequestration benefits compared to the pre-project and ongoing project conditions. Understanding the degree of land degradation helps validate the effectiveness of restoration efforts.
+
+According to SDG 15.3.1, land degradation is defined as the proportion of land degraded over total land area. In order to assess land degradation, the SDG Indicator 15.3.1 measures 3 sub-indicators:
 
 -   Vegetation productivity
 -   Land cover
@@ -224,7 +230,7 @@ SDG 15.3.1 is defined as proportion of land degraded over total land area. In or
 
 ## Land productivity sub-indicator
 
-The trajectory analysis uses linear regressions and non-parametric tests to identify long term significant trends in primary productivity. This method however, is not able to capture more recent changes in primary productivity, which could be signals of short term processes of improvement or degradation. By comparing a long term mean to the most recent period, state is able to capture such recent changes.
+Land productivity refers to the biological capacity of land to produce food, fiber, and fuel essential for human sustenance (United Nations Statistical Commission, 2016). Net primary productivity (NPP) measures the net carbon assimilated through photosynthesis minus autotrophic respiration during a specific time frame (Clark et al., 2001; kg/ha/yr). A widely used proxy for Net Primary Productivity (NPP) is the Normalized Difference Vegetation Index (NDVI). We applied the `trends.earth` algorithm to assess bi-weekly datasets from MODIS and AVHRR to calculate yearly NDVI averages. In effect, we determined trends in land productivity, primary productive class, and site's performance in terms of regional NDVI change.
 
 ## Land cover sub-indicator
 
@@ -235,7 +241,6 @@ To assess changes in land cover, annual land cover maps drawn from the ESA CCI l
 ## Soil organic carbon sub-indicator
 
 The third sub-indicator for monitoring land degradation as part of the SDG process quantifies changes in soil organic carbon (SOC) over the reporting period. Reference values were derived from the SoilGrids 250m carbon stocks dataset, filtered to the first 30 cm profile. Land use conversion coefficients were applied using the `trends.earth` algorithm. Using land cover as a proxy for land use, changes in carbon stocks were computed proportionally after 20 years of land cover change. Aareas which experienced a loss in SOC of 10% of more during the reporting period will be considered potentially degraded, and areas experiencing a gain of 10% or more as potentially improved.
-
 
 
 ``` r
@@ -290,7 +295,7 @@ tm_shape(land_degradation) +
 tmap::tmap_arrange(map1, map2, map3, map4, ncol = 2, nrow = 2)
 ```
 
-preserve8da0ea269a94f8df
+preserveaf9345a2133c1ae7
 
 # Mapping Forest Loss
 
@@ -322,8 +327,7 @@ tm_shape(ndvi_loss) +
   tm_basemap("Esri.WorldImagery")
 ```
 
-preserve530e9fed75c85c64
-
+preservec0221dab0ca722c1
 
 
 ``` python
