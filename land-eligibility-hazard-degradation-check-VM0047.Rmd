@@ -7,7 +7,29 @@ output:
     keep_md: TRUE
 ---
 
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, htmltools.preserve.raw = FALSE)
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE,
+  error = FALSE, comment = NA, tidy.opts = list(width.cutoff = 6)
+) 
 
+requirements <- c(
+  "sf", "terra", "sits", "tmap", "RStoolbox", "mapview", "mapedit",
+  "raster", "tidyverse", "rasterVis", "jsonlite",
+  "stringr", "httr", "gdalUtilities")
+
+setup <- function(requirements){
+  missing.packages <- requirements[!(requirements %in% installed.packages()[,"Package"])];
+  if(length(missing.packages)) {install.packages(
+    missing.packages, repos = "https://cloud.r-project.org/"); }
+  for(package_name in requirements){library(
+    package_name,character.only=TRUE,quietly=TRUE);
+  }
+}
+
+setup(requirements)
+```
 
 # Objective
 
@@ -23,8 +45,7 @@ The following key objectives are informed to assess area eligibility and histori
 
 # Project AOI
 
-
-``` r
+```{r load-aoi, message=FALSE, warning=FALSE, error=FALSE}
 tmap::tmap_mode("view")
 tmap::tmap_options(check.and.fix = T)
 aoi = read_sf("./test-polygon/test polygon.shp") 
@@ -33,14 +54,11 @@ tm_shape(aoi) +
   tm_basemap("Esri.WorldImagery")
 ```
 
-preserveafc6be74c04261ca
-
 # Sentinel time series, 2014-2024
 
 A time series cube was derived from the AWS open-source STAC-formatted raster collection of Sentinel-2 level-2 processed analysis-ready-data. The data cube was assembled, processed, and normalized using cloud-computing to save memory. Cloud removal was conducted according to cloudless pixel ranking and monthly median values.
 
-
-``` r
+```{r derive-cube, message=FALSE, warning=FALSE, error=FALSE, eval=FALSE}
 # Assemble cube from ARD-STAC collection of Sentinel2LA 
 cube_202407 <- sits_cube(
   source = "AWS",
@@ -101,7 +119,28 @@ ndvi = ndvi * 0.0001
 writeRaster(ndvi, "./cubes/2024_mosaic/NDVI_2024_07.tif", overwrite=T)
 ```
 
+```{r derive-index, message=FALSE, warning=FALSE, error=FALSE, eval=FALSE, echo=FALSE}
+ndvi = list.files("./cubes/2024_reg", 
+  pattern = 'NDVI', full.names = T, all.files = FALSE)|>
+  lapply(terra::rast)|>
+  sprc() |>
+  mosaic()
+terra::mask(ndvi, vect(aoi))
+aoi = sf::st_transform(aoi, crs(ndvi))
+ndvi = terra::crop(ndvi, vect(aoi), mask=T)
+ndvi = ndvi * 0.0001
 
+ndbr = list.files("./cubes/2024_reg", 
+  pattern = 'NDBR', full.names = T, all.files = FALSE)|>
+  lapply(terra::rast)|>
+  sprc() |>
+  mosaic()
+ndbr = terra::crop(ndbr, vect(aoi), mask=T)
+ndbr = ndbr * 0.0001
+
+writeRaster(ndvi, "./cubes/2024_mosaic/NDVI_2024_07.tif", overwrite=T)
+writeRaster(ndbr, "./cubes/2024_mosaic/NDBR_2024_07.tif", overwrite=T)
+```
 
 # Vegetation signatures
 
@@ -109,18 +148,13 @@ The Normalized Difference Vegetation Index (NDVI) was used to distinguish green 
 
 In the following section, we calibrate these NDVI thresholds by comparing outputs with unsupervised classification techniques and the European Space Agency's Global land cover dataset.
 
-
-``` r
+```{r hist-index}
 ndvi = rast("./cubes/2024_mosaic/NDVI_2024_07.tif")
 hist(ndvi,
   main = "NDVI Distribution",
   col = "springgreen",
   xlab = "NDVI Index Value")
-```
 
-![](land-eligibility-hazard-degradation-check-VM0047_files/figure-html/hist-index-1.png)<!-- -->
-
-``` r
 ndvi_thresholds <- classify(
   ndvi, c(-1.0, 0.1, 0.4, 0.7, 1), 
   include.lowest=TRUE, 
@@ -143,11 +177,6 @@ tm_shape(ndvi_thresholds) +
   tm_basemap("Esri.WorldImagery") -> map2
 
 tmap::tmap_arrange(map1, map2, ncol=2)
-```
-
-preserve93dddd22d7f09ea4
-
-``` r
 writeRaster(ndvi_thresholds, "./cubes/2024_mosaic/NDVI_thresholds.tif", overwrite=T)
 ```
 
@@ -157,8 +186,7 @@ We apply the K-means clustering method to group pixels into k clusters. The algo
 
 In the following diagrams, we find that the kmeans method corresponded closely with our lower-value NDVI thresholds. However, the kmeans output also suggests that better delineation is needed of further NDVI thresholds within our forest class, such as closed/dense forest and open/sparse forest.
 
-
-``` r
+```{r unsupervised-classifcation, eval=FALSE}
 set.seed(99)
 ndvi = raster::raster(ndvi)
 nr = raster::getValues(ndvi)
@@ -176,7 +204,28 @@ kmeans <- setValues(ndvi, nr)
 writeRaster(kmeans, "./cubes/2024_mosaic/NDVI_kmeans.tif", overwrite=T)
 ```
 
-preservecf954af16625c758
+```{r kmean-viz, echo=FALSE, message=FALSE, warning=FALSE}
+kmeans = rast("./cubes/2024_mosaic/NDVI_kmeans.tif")
+
+tm_shape(kmeans) + 
+  tm_raster(title = "KMeans Unsupervised, 2024", 
+            palette = 'viridis') +
+  tm_shape(aoi) + 
+  tm_borders(col = "red") +
+  tm_basemap("Esri.WorldImagery") -> map1
+
+tm_shape(ndvi_thresholds) + 
+  tm_raster(
+    title = "NDVI Thresholds, 2024",
+    style = "cat",
+    labels = c("Rock/Water (-1.0 to 0.1)", "Bare Earth (0.1 to 0.4)",
+               "Shrub/Grassland (0.4 to 0.7)", "Forest (0.7 to 1.0)")) +
+  tm_shape(aoi) + 
+  tm_borders(col = "red") +
+  tm_basemap("Esri.WorldImagery") -> map2
+
+tmap::tmap_arrange(map1, map2, ncol = 2)
+```
 
 # Global land cover datasets
 
@@ -184,8 +233,7 @@ In the following, we compare our initial results with the European Space Agency'
 
 Results suggest that the project area does not meet VM0047 criteria to make it eligible for the census-based approach.
 
-
-``` r
+```{r esa-land}
 tmap::tmap_mode("view")
 esa_soil = raster("~/Repos/lulc-risk-check-VM0047/inputs/esa_land_cover.tiff")
 tm_shape(esa_soil) +
@@ -218,8 +266,6 @@ tm_shape(ndvi_thresholds) +
 tmap::tmap_arrange(map1, map2, ncol = 2)
 ```
 
-preserve6ade5252dbebf7f3
-
 # Land degradation
 
 SDG 15.3.1 is defined as proportion of land degraded over total land area. In order to assess the area degraded, SDG Indicator 15.3.1 uses information from 3 sub-indicators:
@@ -243,8 +289,7 @@ To assess changes in land cover, annual land cover maps drawn from the ESA CCI l
 The third sub-indicator for monitoring land degradation as part of the SDG process quantifies changes in soil organic carbon (SOC) over the reporting period. Reference values were derived from the SoilGrids 250m carbon stocks dataset, filtered to the first 30 cm profile. Land use conversion coefficients were applied using the `trends.earth` algorithm. Using land cover as a proxy for land use, changes in carbon stocks were computed proportionally after 20 years of land cover change. Aareas which experienced a loss in SOC of 10% of more during the reporting period will be considered potentially degraded, and areas experiencing a gain of 10% or more as potentially improved.
 
 
-
-``` r
+```{r land-degradation}
 productivity = raster("./inputs/degradation/prod_degradation.tif")
 soil_carbon = raster("./inputs/degradation/soil_degradation.tif")
 land_cover = raster("./inputs/degradation/cover_degradation.tif")
@@ -296,12 +341,9 @@ tm_shape(land_degradation) +
 tmap::tmap_arrange(map1, map2, map3, map4, ncol = 2, nrow = 2)
 ```
 
-preserve8da0ea269a94f8df
-
 # Mapping Forest Loss
 
-
-``` r
+```{r defor-change}
 ndvi_2024 = rast("./cubes/2024_mosaic/NDVI_2024_07.tif")
 ndvi_2014 = rast("./cubes/2014_mosaic/NDVI_2014.tif")
 
@@ -328,11 +370,8 @@ tm_shape(ndvi_loss) +
   tm_basemap("Esri.WorldImagery")
 ```
 
-preserve530e9fed75c85c64
 
-
-
-``` python
+```{python, eval=F}
 import datetime as dt
 import os
 import tempfile
@@ -467,4 +506,5 @@ def compute_soil_organic_carbon(
         raise RuntimeError("Error calculating soil organic carbon")
 
     return soc_job
+
 ```
