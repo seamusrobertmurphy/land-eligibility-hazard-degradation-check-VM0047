@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/1236293/36ce7891e0a64311a074f9c9cf73dc8e
+bundleId: https://api.rpubs.com/api/v1/document/1236293/36ce7891e0a64311a074f9c9cf73dc8e
+url: http://rpubs.com/seamusmurphy/1236293
+version: 1

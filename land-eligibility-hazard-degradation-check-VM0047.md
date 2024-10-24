@@ -22,16 +22,24 @@ The following workflow assesses area eligibility and historical deforestation ri
 # Project AOI
 
 
+
+
 ``` r
-tmap::tmap_mode("view")
+tmap::tmap_mode("plot")
 tmap::tmap_options(check.and.fix = T)
 aoi = read_sf("./test-polygon/test polygon.shp") 
-tm_shape(aoi) + 
+basemap = get_tiles(aoi, provider = "OpenTopoMap", zoom = 12, crop = TRUE)
+
+tm_shape(basemap) + 
+  tm_rgb() + 
+  tm_shape(aoi) +
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery")
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar()
 ```
 
-preserveadc6cf61b2a18336
+![](land-eligibility-hazard-degradation-check-VM0047_files/figure-html/load-aoi-1.png)<!-- -->
 
 # Sentinel time series, 2014-2024
 
@@ -128,7 +136,10 @@ tm_shape(ndvi) +
   tm_raster(title = "NDVI, 2024") +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery") -> map1
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar() -> map1
 
 tm_shape(ndvi_thresholds) + 
   tm_raster(
@@ -138,12 +149,15 @@ tm_shape(ndvi_thresholds) +
                "Shrub/Grassland (0.4 to 0.7)", "Forest (0.5 to 1.0)")) +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery") -> map2
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar() -> map2
 
 tmap::tmap_arrange(map1, map2, ncol=2)
 ```
 
-preserve549ea4e3b80d439c
+![](land-eligibility-hazard-degradation-check-VM0047_files/figure-html/hist-index-2.png)<!-- -->
 
 ``` r
 writeRaster(ndvi_thresholds, "./cubes/2024_mosaic/NDVI_thresholds.tif", overwrite=T)
@@ -174,7 +188,7 @@ kmeans <- setValues(ndvi, nr)
 writeRaster(kmeans, "./cubes/2024_mosaic/NDVI_kmeans.tif", overwrite=T)
 ```
 
-preserve91d7e51e38aaffff
+![](land-eligibility-hazard-degradation-check-VM0047_files/figure-html/kmean-viz-1.png)<!-- -->
 
 # Global land cover datasets
 
@@ -184,8 +198,7 @@ Results suggest that the project area does not meet VM0047 criteria to make it e
 
 
 ``` r
-tmap::tmap_mode("view")
-esa_soil = raster("~/Repos/lulc-risk-check-VM0047/inputs/esa_land_cover.tiff")
+esa_soil = raster("./inputs/esa_land_cover.tiff")
 tm_shape(esa_soil) +
   tm_raster(style= "cat", palette = 'viridis',
             title="ESA Land Cover, 2019",
@@ -201,7 +214,10 @@ tm_shape(esa_soil) +
                        "Open forest, unknown")) +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery")-> map1
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar() -> map1
 
 tm_shape(ndvi_thresholds) + 
   tm_raster(
@@ -211,12 +227,15 @@ tm_shape(ndvi_thresholds) +
                "Shrub/Grassland (0.4 to 0.7)", "Forest (0.7 to 1.0)")) +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery") -> map2
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar() -> map2
 
 tmap::tmap_arrange(map1, map2, ncol = 2)
 ```
 
-preservee49f9ad1de8af612
+![](land-eligibility-hazard-degradation-check-VM0047_files/figure-html/esa-land-1.png)<!-- -->
 
 # Land degradation
 
@@ -258,7 +277,10 @@ tm_shape(productivity) +
                "Stable")) +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery") -> map1
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar() -> map1
 
 tm_shape(soil_carbon) + 
   tm_raster(
@@ -269,7 +291,10 @@ tm_shape(soil_carbon) +
                "Stable")) +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery") -> map2
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar() -> map2
 
 tm_shape(land_cover) + 
   tm_raster(
@@ -280,7 +305,10 @@ tm_shape(land_cover) +
                "Stable")) +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery") -> map3
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar() -> map3
 
 tm_shape(land_degradation) + 
   tm_raster(
@@ -290,12 +318,15 @@ tm_shape(land_degradation) +
                "Improvement")) +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery") -> map4
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar() -> map4
 
 tmap::tmap_arrange(map1, map2, map3, map4, ncol = 2, nrow = 2)
 ```
 
-preserveaf9345a2133c1ae7
+![](land-eligibility-hazard-degradation-check-VM0047_files/figure-html/land-degradation-1.png)<!-- -->
 
 # Mapping Forest Loss
 
@@ -324,145 +355,10 @@ tm_shape(ndvi_loss) +
     legend.show = F) +
   tm_shape(aoi) + 
   tm_borders(col = "red") +
-  tm_basemap("Esri.WorldImagery")
+  tm_basemap("Esri.WorldImagery") +  
+  tm_graticules() +
+  tm_compass(position = c("left", "bottom")) +
+  tm_scale_bar()
 ```
 
-preservec0221dab0ca722c1
-
-
-``` python
-import datetime as dt
-import os
-import tempfile
-from pathlib import Path
-
-import numpy as np
-from osgeo import gdal, osr
-from te_algorithms.gdal.util import trans_factors_for_custom_legend
-from te_schemas.land_cover import LCLegendNesting
-from te_schemas.results import URI, DataType, Raster, RasterFileType, RasterResults
-from te_schemas.results import Band as JobBand
-
-import LDMP.logger
-
-from .. import utils, worker
-from ..areaofinterest import AOI
-from ..jobs.models import Job
-
-
-def compute_soil_organic_carbon(
-    soc_job: Job,
-    area_of_interest: AOI,
-    job_output_path: Path,
-    dataset_output_path: Path,
-) -> Job:
-    # Select the initial and final bands from initial and final datasets
-    # (in case there is more than one lc band per dataset)
-    lc_initial_vrt = utils.save_vrt(
-        soc_job.params["lc_initial_path"], soc_job.params["lc_initial_band_index"]
-    )
-    lc_final_vrt = utils.save_vrt(
-        soc_job.params["lc_final_path"], soc_job.params["lc_final_band_index"]
-    )
-    lc_files = [lc_initial_vrt, lc_final_vrt]
-    lc_vrts = []
-
-    for index, path in enumerate(lc_files):
-        vrt_path = tempfile.NamedTemporaryFile(suffix=".vrt").name
-        # Add once since band numbers don't start at zero
-        gdal.BuildVRT(
-            vrt_path,
-            lc_files[index],
-            bandList=[index + 1],
-            outputBounds=area_of_interest.get_aligned_output_bounds_deprecated(
-                lc_initial_vrt
-            ),
-            resolution="highest",
-            resampleAlg=gdal.GRA_NearestNeighbour,
-            separate=True,
-        )
-        lc_vrts.append(vrt_path)
-    custom_soc_vrt = utils.save_vrt(
-        soc_job.params["custom_soc_path"], soc_job.params["custom_soc_band_index"]
-    )
-    climate_zones_path = Path(__file__).parents[1] / "data" / "IPCC_Climate_Zones.tif"
-    in_files = [
-        custom_soc_vrt,
-        str(climate_zones_path),
-    ] + lc_vrts
-
-    nesting = LCLegendNesting.Schema().load(
-        soc_job.params["legend_nesting_custom_to_ipcc"]
-    )
-
-    in_vrt_path = tempfile.NamedTemporaryFile(suffix=".vrt").name
-    LDMP.logger.log("Saving SOC input files to {}".format(in_vrt_path))
-    gdal.BuildVRT(
-        in_vrt_path,
-        in_files,
-        resolution="highest",
-        resampleAlg=gdal.GRA_NearestNeighbour,
-        outputBounds=area_of_interest.get_aligned_output_bounds_deprecated(
-            lc_initial_vrt
-        ),
-        separate=True,
-    )
-    LDMP.logger.log(f"Saving soil organic carbon to {dataset_output_path!r}")
-    # Lc bands start on band 3 as band 1 is initial soc, and band 2 is
-    # climate zones
-    lc_band_nums = list(range(3, len(lc_files) + 3))
-    soc_worker = worker.StartWorker(
-        SOCWorker,
-        "calculating change in soil organic carbon",
-        in_vrt_path,
-        str(dataset_output_path),
-        lc_band_nums,
-        soc_job.params["lc_years"],
-        soc_job.params["fl"],
-        nesting,
-    )
-
-    if soc_worker.success:
-        soc_job.end_date = dt.datetime.now(dt.timezone.utc)
-        soc_job.progress = 100
-        bands = [
-            JobBand(
-                name="Soil organic carbon (degradation)",
-                metadata={
-                    "year_initial": soc_job.params["lc_years"][0],
-                    "year_final": soc_job.params["lc_years"][-1],
-                },
-            )
-        ]
-
-        for year in soc_job.params["lc_years"]:
-            soc_band = JobBand(name="Soil organic carbon", metadata={"year": year})
-            bands.append(soc_band)
-
-        for year in soc_job.params["lc_years"]:
-            lc_band = JobBand(
-                name="Land cover",
-                metadata={
-                    "year": year,
-                    "nesting": LCLegendNesting.Schema().dumps(nesting),
-                },
-            )
-            bands.append(lc_band)
-
-        soc_job.results = RasterResults(
-            name="soil_organic_carbon",
-            uri=URI(uri=dataset_output_path),
-            rasters={
-                DataType.INT16.value: Raster(
-                    uri=URI(uri=dataset_output_path),
-                    bands=bands,
-                    datatype=DataType.INT16,
-                    filetype=RasterFileType.GEOTIFF,
-                ),
-            },
-        )
-    else:
-        raise RuntimeError("Error calculating soil organic carbon")
-
-    return soc_job
-```
+![](land-eligibility-hazard-degradation-check-VM0047_files/figure-html/defor-change-1.png)<!-- -->
