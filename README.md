@@ -1,12 +1,6 @@
----
-title: "[VM0047](https://verra.org/wp-content/uploads/2023/09/VM0047_ARR_v1.0-1.pdf): Eligibility, Hazards & Land Degradation Assessment"
-author: "Murphy, S."
-date: "2024-10-17"
-output: 
-  html_document:
-    keep_md: TRUE
----
-
+# "[VM0047](https://verra.org/wp-content/uploads/2023/09/VM0047_ARR_v1.0-1.pdf): Eligibility, Hazards & Land Degradation Assessment"
+### author: "Murphy, S."
+### date: "2024-10-17"
 
 
 # Objective
